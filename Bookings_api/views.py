@@ -50,3 +50,12 @@ def for_a_day(request, year, month, day):
         bookings = Bookings.objects.filter(date=res)
         serializer = BookingsSerializer(bookings, many=True)
         return Response(serializer.data)
+
+
+@api_view(['GET'])
+@csrf_exempt
+def for_a_venue(request, venue):
+    if request.method == 'GET':
+        bookings = Bookings.objects.filter(venue=venue)
+        serializer = BookingsSerializer(bookings, many=True)
+        return Response(serializer.data)
