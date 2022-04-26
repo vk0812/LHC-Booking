@@ -41,26 +41,29 @@ def checkClash(dict_data):
     return True  # No Time Clash
 
 
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 @csrf_exempt
-def data(request):
-    if request.method == 'GET':
-        bookings = Bookings.objects.all()
-        serializer = BookingsSerializer(bookings, many=True)
-        return Response(serializer.data)
-    elif request.method == 'POST':
-        if(validateTiming(request.data['start_time'], request.data['end_time']) == False):
-            return Response("Start Time for the Event is after the End Time", status=status.HTTP_404_NOT_FOUND)
+def bookings(request):
+    bookings = Bookings.objects.all()
+    serializer = BookingsSerializer(bookings, many=True)
+    return Response(serializer.data)
 
-        if(checkClash(request.data) == False):
-            return Response(f"{request.data['venue']} already booked during this time!!", status=status.HTTP_404_NOT_FOUND)
 
-        serializer = BookingsSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
+@api_view(['POST'])
+@csrf_exempt
+def book(request):
+    if(validateTiming(request.data['start_time'], request.data['end_time']) == False):
+        return Response("Start Time for the Event is after the End Time", status=status.HTTP_404_NOT_FOUND)
+
+    if(checkClash(request.data) == False):
+        return Response(f"{request.data['venue']} already booked during this time!!", status=status.HTTP_404_NOT_FOUND)
+
+    serializer = BookingsSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    else:
+        return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['DELETE'])
@@ -77,7 +80,7 @@ def for_a_day(request, year, month, day):
     if request.method == 'GET':
         bookings = Bookings.objects.filter(date=getDate(year, month, day))
         serializer = BookingsSerializer(bookings, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
@@ -86,4 +89,4 @@ def for_a_venue(request, venue):
     if request.method == 'GET':
         bookings = Bookings.objects.filter(venue=venue)
         serializer = BookingsSerializer(bookings, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
